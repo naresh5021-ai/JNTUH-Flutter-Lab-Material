@@ -1,0 +1,11 @@
+void main() {
+  var name = "Naresh"; // simulate user input
+  print("Enter your name: $name");
+  print(name);
+}
+
+/*void main(){
+  stdout.write("Enter your name : ");
+  var name = stdin.readLineSync()!;
+  stdout.write(name);
+}*/
