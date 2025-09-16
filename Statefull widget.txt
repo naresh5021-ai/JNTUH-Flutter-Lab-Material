@@ -1,0 +1,132 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class CardData {
+  final String title;
+  final String subtitle;
+  bool isFavorite; 
+
+  CardData({
+    required this.title,
+    required this.subtitle,
+    this.isFavorite = false,
+  });
+}
+
+class CardListModel extends ChangeNotifier {
+  final List<CardData> _cards;
+
+  CardListModel()
+      : _cards = List<CardData>.generate(
+          10,
+          (index) => CardData(
+            title: 'Card ${index + 1}',
+            subtitle: 'Subtitle for Card ${index + 1}',
+            isFavorite: index % 3 == 0,
+          ),
+        );
+
+  List<CardData> get cards => List.unmodifiable(_cards);
+
+  void toggleFavorite(int index) {
+    if (index >= 0 && index < _cards.length) {
+      _cards[index].isFavorite = !_cards[index].isFavorite;
+      notifyListeners(); 
+    }
+  }
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider<CardListModel>(
+      create: (context) => CardListModel(),
+      builder: (context, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: Scaffold(
+            appBar: AppBar(
+              title: const Text('Interactive Cards'),
+            ),
+            body: const CardList(),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class CardList extends StatelessWidget {
+  const CardList({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final CardListModel cardListModel = Provider.of<CardListModel>(context);
+
+    return ListView.builder(
+      itemCount: cardListModel.cards.length,
+      itemBuilder: (BuildContext context, int index) {
+        final CardData card = cardListModel.cards[index];
+        return CardItem(
+          title: card.title,
+          subtitle: card.subtitle,
+          isFavorite: card.isFavorite,
+          onFavoriteToggle: () {
+            cardListModel.toggleFavorite(index);
+          },
+        );
+      },
+    );
+  }
+}
+
+class CardItem extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final bool isFavorite;
+  final VoidCallback onFavoriteToggle;
+
+  const CardItem({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    required this.isFavorite,
+    required this.onFavoriteToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: ListTile(
+        title: Text(title),
+        subtitle: Text(subtitle),
+        leading: CircleAvatar(
+          child: Text(title.substring(0, 1)),
+        ),
+        trailing: IconButton(
+          icon: Icon(
+            isFavorite ? Icons.favorite : Icons.favorite_border,
+            color: isFavorite ? Colors.red : null,
+          ),
+          onPressed: onFavoriteToggle,
+          tooltip: isFavorite ? 'Remove from favorites' : 'Add to favorites',
+        ),
+        onTap: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Tapped on "$title"'),
+              duration: const Duration(seconds: 1),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
